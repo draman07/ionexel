@@ -14,6 +14,7 @@ import SimpleOpenNI.*;
 //http://www.gicentre.net/handy/using
 */
 import org.gicentre.handy.*;
+HandyRenderer h;
 
 PGraphics    canvas;
 color[]      userClr = new color[]
@@ -26,9 +27,10 @@ color[]      userClr = new color[]
     color(0, 255, 255)
 };
 
+//center of mass
 PVector com = new PVector();                                   
 PVector com2d = new PVector();
-HandyRenderer h;
+
 
 // --------------------------------------------------------------------------------
 //  CAMERA IMAGE SENT VIA SYPHON
@@ -219,6 +221,7 @@ int currentSketch = 0;
 int nbSketches = 2;
 int nbSwitches = 0;
 boolean[] tooClose = new boolean[16]; //one for each user
+BonhommeAlumette balum = new BonhommeAlumette();
 
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
@@ -253,6 +256,7 @@ void setup()
     println("Setup Exit Handerl");
     prepareExitHandler();
     
+    //setup the handy renderer
     h = new HandyRenderer(this);
 }
 
@@ -260,68 +264,45 @@ void draw()
 {
     // update the cam
     context.update();
-
+    
+    //switch sketch if required
+    int[] userList = context.getUsers();
+    for (int i=0; i<userList.length; i++) {
+      if (context.getCoM(userList[i], com)) {
+        //context.convertRealWorldToProjective(com, com2d);
+        if (com.z>1000 && tooClose[i]) { //le centre masse s'est éloigné alors qu'on était près : on switche
+           tooClose[i] = !tooClose[i];
+           switchSketch();
+        } else {
+          tooClose[i] = (com.z<1000);
+        }
+      }
+      
+      //@PP comment faire avec plusieurs utilisateurs ???
+      sendOSCSkeleton(userList[i]);
+    }
+    
     canvas.beginDraw();
 
     // draw image
     //OpenNI_DrawCameraImage();
     PImage img = createImage(640, 480, RGB);
     canvas.image(img, 0, 0);
-
-    // draw the skeleton if it's available
-    if (kDrawSkeleton) {
-
-        int[] userList = context.getUsers();
-        for (int i=0; i<userList.length; i++)
-        {
-            if (context.isTrackingSkeleton(userList[i]))
-            {
-                canvas.stroke(userClr[ (userList[i] - 1) % userClr.length ] );
-                
-                switch(currentSketch) {
-                  case 0:
-                    drawSkeletonHandy(userList[i]);
-                    break;
-                  case 1:
-                    drawSkeletonAlumette(userList[i]);
-                    break;
-                }
-                
-                
-
-                if (userList.length == 1) {
-                    sendOSCSkeleton(userList[i]);
-                }
-            }      
-
-            // draw the center of mass
-            if (context.getCoM(userList[i], com))
-            {
-                context.convertRealWorldToProjective(com, com2d);
-                
-                
-                
-                canvas.stroke(100, 255, 0);
-                canvas.strokeWeight(1);
-                canvas.beginShape(LINES);
-                canvas.vertex(com2d.x, com2d.y - 5);
-                canvas.vertex(com2d.x, com2d.y + 5);
-                canvas.vertex(com2d.x - 5, com2d.y);
-                canvas.vertex(com2d.x + 5, com2d.y);
-                canvas.endShape();
-
-                canvas.fill(0, 255, 100);
-                canvas.text(Integer.toString(userList[i]), com2d.x, com2d.y);
-                
-                if (com.z>1000 && tooClose[i]) { //le centre masse s'est éloigné alors qu'on était près : on switche
-                  tooClose[i] = !tooClose[i];
-                  switchSketch();
-                } else {
-                  tooClose[i] = (com.z<1000);
-                }
-            }
-        }
+    
+    switch(currentSketch) {
+      case 0:
+        drawSkeletonHandy(userList[0]);
+        break;
+      case 1:
+        balum.dessine(userList);
+        break;
     }
+                
+         
+
+            
+        
+    
 
     canvas.endDraw();
 
@@ -343,31 +324,7 @@ void drawSkeletonHandy(int userId)
     canvas.stroke(255, 255, 255, 255);
     canvas.strokeWeight(3);
 
-    /*drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-    drawHead(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
-
-    //drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-    //drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_HIP);
-    //drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
-
-    //drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
-    */
+    
     canvas.noFill();
     h.setRoughness(3);
     h.setFillWeight(2);
@@ -438,128 +395,7 @@ void drawLimbH(int userId, int jointType1, int jointType2)
     h.line(a_2d.x, a_2d.y, b_2d.x, b_2d.y);
 }
 
-// draw the skeleton with the selected joints
-void drawSkeletonAlumette(int userId)
-{
-    canvas.stroke(255, 255, 255, 255);
-    canvas.strokeWeight(3);
 
-    /*drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-    drawHead(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
-
-    //drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-    //drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_HIP);
-    //drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
-
-    //drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
-    */
-    canvas.noFill();
-    canvas.beginShape();
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_HAND);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_HAND);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-    drawJoint(userId, SimpleOpenNI.SKEL_NECK);
-    drawJoint(userId, SimpleOpenNI.SKEL_NECK);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_ELBOW);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_HAND);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_HAND);
-    canvas.endShape();
-    
-    canvas.beginShape();
-    drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
-    drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
-    drawJoint(userId, SimpleOpenNI.SKEL_NECK);
-    drawJoint(userId, SimpleOpenNI.SKEL_TORSO);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_KNEE);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_FOOT);
-    drawJoint(userId, SimpleOpenNI.SKEL_LEFT_FOOT);
-    canvas.endShape();
-    
-    canvas.beginShape();
-    drawJoint(userId, SimpleOpenNI.SKEL_TORSO);
-    drawJoint(userId, SimpleOpenNI.SKEL_TORSO);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_HIP);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_KNEE);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_FOOT);
-    drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_FOOT);
-    canvas.endShape();
-    
-    
-}
-void drawJoint(int userId, int jointType)
-{
-    float  confidence;
-
-    // draw the joint position
-    PVector a_3d = new PVector();
-    confidence = context.getJointPositionSkeleton(userId, jointType, a_3d);
-    
-    PVector a_2d = new PVector();
-    context.convertRealWorldToProjective(a_3d, a_2d);
-    
-    canvas.curveVertex(a_2d.x, a_2d.y);
-}
-
-void drawLimb(int userId, int jointType1, int jointType2)
-{
-    float  confidence;
-
-    // draw the joint position
-    PVector a_3d = new PVector();
-    confidence = context.getJointPositionSkeleton(userId, jointType1, a_3d);
-    PVector b_3d = new PVector();
-    confidence = context.getJointPositionSkeleton(userId, jointType2, b_3d);
-
-    PVector a_2d = new PVector();
-    context.convertRealWorldToProjective(a_3d, a_2d);
-    PVector b_2d = new PVector();
-    context.convertRealWorldToProjective(b_3d, b_2d);
-
-    canvas.line(a_2d.x, a_2d.y, b_2d.x, b_2d.y);
-}
-
-void drawHead(int userId, int jointType1, int jointType2)
-{
-    float  confidence;
-
-    // draw the joint position
-    PVector a_3d = new PVector();
-    confidence = context.getJointPositionSkeleton(userId, jointType1, a_3d);
-    PVector b_3d = new PVector();
-    confidence = context.getJointPositionSkeleton(userId, jointType2, b_3d);
-
-    PVector a_2d = new PVector();
-    context.convertRealWorldToProjective(a_3d, a_2d);
-    PVector b_2d = new PVector();
-    context.convertRealWorldToProjective(b_3d, b_2d);
-    
-    PVector artCou = new PVector();
-    
-    float distHeadNeck = a_2d.y-b_2d.y;
-    
-    canvas.line(a_2d.x, a_2d.y-distHeadNeck/2, a_2d.x+3*distHeadNeck/4, b_2d.y+3*distHeadNeck/4);
-    
-    //canvas.line(a_2d.x, a_2d.y, b_2d.x, b_2d.y);
-}
 
 // -----------------------------------------------------------------
 // SimpleOpenNI events
