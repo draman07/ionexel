@@ -298,11 +298,7 @@ void draw()
         balum.dessine(userList);
         break;
     }
-                
-         
 
-            
-        
     
 
     canvas.endDraw();

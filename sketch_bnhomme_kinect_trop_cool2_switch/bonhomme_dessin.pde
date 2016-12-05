@@ -7,7 +7,7 @@ class BonhommeDessin {
   void dessine(int[] users) {
     for (int i=0; i<users.length; i++) {
       if (context.isTrackingSkeleton(users[i])) {
-            drawSkeletonAlumette(users[i]);
+            drawSkeletonHandy(users[i]);
       }  
     }
   }
