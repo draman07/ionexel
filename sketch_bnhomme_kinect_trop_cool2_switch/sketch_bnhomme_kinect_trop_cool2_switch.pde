@@ -192,6 +192,18 @@ private void setupSyphonServer(String inServerName)
 }
 
 // --------------------------------------------------------------------------------
+//  BLOB DETECTION
+// from blobscanner Antonio Molinaro (c) 20/07/2013
+// --------------------------------------------------------------------------------
+import blobscanner.*;
+PImage blobs;
+Detector bs;
+PVector []  edge  ; 
+int i;
+
+
+
+// --------------------------------------------------------------------------------
 //  EXIT HANDLER
 // --------------------------------------------------------------------------------
 // called on exit to gracefully shutdown the Syphon server
@@ -218,11 +230,14 @@ private void prepareExitHandler()
 
 //switch between sketches
 int currentSketch = 0;
-int nbSketches = 2;
+int nbSketches = 3;
 int nbSwitches = 0;
 boolean[] tooFar = new boolean[16]; //one for each user
+PImage resultImage;
+
 BonhommeAlumette balum = new BonhommeAlumette();
 BonhommeDessin bdessin = new BonhommeDessin();
+RemoveBackground rbackground = new RemoveBackground();
 
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
@@ -259,6 +274,13 @@ void setup()
     
     //setup the handy renderer
     h = new HandyRenderer(this);
+    
+    //setup blob detector
+    bs = new Detector( this, 0 );
+    blobs = createImage(640/3, 480/3, RGB);
+    
+    //setup buffer image
+    resultImage = new PImage(640, 480, RGB);
 }
 
 void draw()
@@ -273,7 +295,7 @@ void draw()
       //let's get the center of mass (com)
       if (context.getCoM(userList[i], com)) {
         //context.convertRealWorldToProjective(com, com2d);
-        if (com.z<1000 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
+        if (com.z<1000 && com.z>1 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
            tooFar[userList[i]] = !tooFar[userList[i]];
            switchSketch();
         } else {
@@ -298,6 +320,9 @@ void draw()
         break;
       case 1:
         balum.dessine(userList);
+        break;
+      case 2:
+        rbackground.dessine();
         break;
     }
 
