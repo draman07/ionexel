@@ -220,7 +220,7 @@ private void prepareExitHandler()
 int currentSketch = 0;
 int nbSketches = 2;
 int nbSwitches = 0;
-boolean[] tooClose = new boolean[16]; //one for each user
+boolean[] tooFar = new boolean[16]; //one for each user
 BonhommeAlumette balum = new BonhommeAlumette();
 BonhommeDessin bdessin = new BonhommeDessin();
 
@@ -268,14 +268,16 @@ void draw()
     
     //switch sketch if required
     int[] userList = context.getUsers();
+    //let's iterate through userList
     for (int i=0; i<userList.length; i++) {
+      //let's get the center of mass (com)
       if (context.getCoM(userList[i], com)) {
         //context.convertRealWorldToProjective(com, com2d);
-        if (com.z>1000 && tooClose[i]) { //le centre masse s'est éloigné alors qu'on était près : on switche
-           tooClose[i] = !tooClose[i];
+        if (com.z<1000 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
+           tooFar[userList[i]] = !tooFar[userList[i]];
            switchSketch();
         } else {
-          tooClose[i] = (com.z<1000);
+          tooFar[userList[i]] = (com.z>1000);
         }
       }
       
