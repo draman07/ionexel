@@ -193,14 +193,38 @@ private void setupSyphonServer(String inServerName)
 
 // --------------------------------------------------------------------------------
 //  BLOB DETECTION
-// from blobscanner Antonio Molinaro (c) 20/07/2013
+// from Kinect Flow Example by Amon Owed (15/09/12)
 // --------------------------------------------------------------------------------
-import blobscanner.*;
-PImage blobs;
-Detector bs;
-PVector []  edge  ; 
-int i;
+// this is a regular java import so we can use and extend the polygon class (see PolygonBlob)
+import java.awt.Polygon;
 
+import blobDetection.*;
+// declare BlobDetection object
+BlobDetection theBlobDetection;
+// declare custom PolygonBlob object (see class for more info)
+PolygonBlob poly = new PolygonBlob();
+
+// PImage to hold incoming imagery and smaller one for blob detection
+PImage blobs;
+// the kinect's dimensions to be used later on for calculations
+int kinectWidth = 640;
+int kinectHeight = 480;
+// to center and rescale from 640x480 to higher custom resolutions
+float reScale;
+
+// background color
+color bgColor;
+// three color palettes (artifact from me storing many interesting color palettes as strings in an external data file ;-)
+String[] palettes = {
+  "-1117720,-13683658,-8410437,-9998215,-1849945,-5517090,-4250587,-14178341,-5804972,-3498634", 
+  "-67879,-9633503,-8858441,-144382,-4996094,-16604779,-588031", 
+  "-16711663,-13888933,-9029017,-5213092,-1787063,-11375744,-2167516,-15713402,-5389468,-2064585"
+};
+
+// an array called flow of 2250 Particle objects (see Particle class)
+Particle[] flow = new Particle[2250];
+// global variables to influence the movement of all particles
+float globalX, globalY;
 
 
 // --------------------------------------------------------------------------------
@@ -230,7 +254,7 @@ private void prepareExitHandler()
 
 //switch between sketches
 int currentSketch = 0;
-int nbSketches = 3;
+int nbSketches = 4;
 int nbSwitches = 0;
 boolean[] tooFar = new boolean[16]; //one for each user
 PImage resultImage;
@@ -238,6 +262,7 @@ PImage resultImage;
 BonhommeAlumette balum = new BonhommeAlumette();
 BonhommeDessin bdessin = new BonhommeDessin();
 RemoveBackground rbackground = new RemoveBackground();
+DessinPolygone dpolygone = new DessinPolygone();
 
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
@@ -275,9 +300,15 @@ void setup()
     //setup the handy renderer
     h = new HandyRenderer(this);
     
-    //setup blob detector
-    bs = new Detector( this, 0 );
-    blobs = createImage(640/3, 480/3, RGB);
+    // calculate the reScale value
+    // currently it's rescaled to fill the complete width (cuts of top-bottom)
+    // it's also possible to fill the complete height (leaves empty sides)
+    reScale = (float) width / kinectWidth;
+    // create a smaller blob image for speed and efficiency
+    blobs = createImage(kinectWidth/3, kinectHeight/3, RGB);
+    // initialize blob detection object to the blob image dimensions
+    theBlobDetection = new BlobDetection(blobs.width, blobs.height);
+    theBlobDetection.setThreshold(0.3);
     
     //setup buffer image
     resultImage = new PImage(640, 480, RGB);
@@ -323,6 +354,9 @@ void draw()
         break;
       case 2:
         rbackground.dessine();
+        break;
+      case 3:
+        dpolygone.dessine();
         break;
     }
 
