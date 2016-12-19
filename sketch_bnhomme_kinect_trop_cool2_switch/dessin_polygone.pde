@@ -25,7 +25,9 @@ class DessinPolygone {
     poly.reset();
     // create the polygon from the blobs (custom functionality, see class)
     poly.createPolygon();
-    //drawFlowfield();
+    if (dflux) {
+      drawFlowfield();
+    }
     
     canvas.stroke(255);
     if (poly.npoints>1) {

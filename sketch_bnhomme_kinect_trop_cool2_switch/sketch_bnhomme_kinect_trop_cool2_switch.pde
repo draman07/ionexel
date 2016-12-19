@@ -8,7 +8,7 @@
  * date:  12/12/2012 (m/d/y)
  * ----------------------------------------------------------------------------
  */
-
+import processing.opengl.*; // opengl
 import SimpleOpenNI.*;
 /* handy : librairie pour donner une impression de dessin "naturel"
 //http://www.gicentre.net/handy/using
@@ -254,10 +254,11 @@ private void prepareExitHandler()
 
 //switch between sketches
 int currentSketch = 0;
-int nbSketches = 4;
+int nbSketches = 5;
 int nbSwitches = 0;
 boolean[] tooFar = new boolean[16]; //one for each user
 boolean switchOverride = false;
+boolean dflux = false;
 PImage resultImage;
 
 BonhommeAlumette balum = new BonhommeAlumette();
@@ -270,8 +271,8 @@ DessinPolygone dpolygone = new DessinPolygone();
 // --------------------------------------------------------------------------------
 void setup()
 {
-    size(640, 480, P3D);
-    canvas = createGraphics(640, 480, P3D);
+    size(640, 480, OPENGL);
+    canvas = createGraphics(640, 480, OPENGL);
 
     println("Setup Canvas");
 
@@ -310,6 +311,7 @@ void setup()
     // initialize blob detection object to the blob image dimensions
     theBlobDetection = new BlobDetection(blobs.width, blobs.height);
     theBlobDetection.setThreshold(0.3);
+    setupFlowfield();
     
     //setup buffer image
     resultImage = new PImage(640, 480, RGB);
@@ -358,6 +360,11 @@ void draw()
         rbackground.dessine();
         break;
       case 3:
+        dflux = false;
+        dpolygone.dessine();
+        break;
+      case 4:
+        dflux = true;
         dpolygone.dessine();
         break;
     }
@@ -377,6 +384,50 @@ void switchSketch() {
   currentSketch = nbSwitches % nbSketches;
 }
 
+void setupFlowfield() {
+  // set stroke weight (for particle display) to 2.5
+  strokeWeight(1);
+  // initialize all particles in the flow
+  for(int i=0; i<flow.length; i++) {
+    flow[i] = new Particle(i/10000.0);
+  }
+  // set all colors randomly now
+  setRandomColors(1);
+}
+
+void drawFlowfield() {
+  // center and reScale from Kinect to custom dimensions
+  translate(0, (height-kinectHeight*reScale)/2);
+  scale(reScale);
+  // set global variables that influence the particle flow's movement
+  globalX = noise(frameCount * 0.01) * width/2 + width/4;
+  globalY = noise(frameCount * 0.005 + 5) * height;
+  // update and display all particles in the flow
+  for (Particle p : flow) {
+    p.updateAndDisplay();
+  }
+  // set the colors randomly every 240th frame
+  setRandomColors(240);
+}
+
+// sets the colors every nth frame
+void setRandomColors(int nthFrame) {
+  if (frameCount % nthFrame == 0) {
+    // turn a palette into a series of strings
+    String[] paletteStrings = split(palettes[int(random(palettes.length))], ",");
+    // turn strings into colors
+    color[] colorPalette = new color[paletteStrings.length];
+    for (int i=0; i<paletteStrings.length; i++) {
+      colorPalette[i] = int(paletteStrings[i]);
+    }
+    // set background color to first color from palette
+    bgColor = colorPalette[0];
+    // set all particle colors randomly to color from palette (excluding first aka background color)
+    for (int i=0; i<flow.length; i++) {
+      flow[i].col = colorPalette[int(random(1, colorPalette.length))];
+    }
+  }
+}
 
 
 
@@ -428,6 +479,11 @@ void keyPressed()
     case '4':
         currentSketch = 3;
         println("Sketch 4");
+        switchOverride = true;
+        break;
+    case '5':
+        currentSketch = 4;
+        println("Sketch 5");
         switchOverride = true;
         break;
     case ESC:
