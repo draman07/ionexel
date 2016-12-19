@@ -40,9 +40,9 @@ class Particle {
     }
     
     // individual particle color
-    stroke(col);
+    canvas.stroke(col);
     // line from previous to current position
-    line(xp, yp, x, y);
+    canvas.line(xp, yp, x, y);
     
     // set previous to current position
     xp=x;
