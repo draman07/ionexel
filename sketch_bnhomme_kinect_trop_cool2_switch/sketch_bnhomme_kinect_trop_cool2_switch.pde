@@ -257,6 +257,7 @@ int currentSketch = 0;
 int nbSketches = 4;
 int nbSwitches = 0;
 boolean[] tooFar = new boolean[16]; //one for each user
+boolean switchOverride = false;
 PImage resultImage;
 
 BonhommeAlumette balum = new BonhommeAlumette();
@@ -323,17 +324,18 @@ void draw()
     int[] userList = context.getUsers();
     //let's iterate through userList
     for (int i=0; i<userList.length; i++) {
-      //let's get the center of mass (com)
-      if (context.getCoM(userList[i], com)) {
-        //context.convertRealWorldToProjective(com, com2d);
-        if (com.z<1000 && com.z>1 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
-           tooFar[userList[i]] = !tooFar[userList[i]];
-           switchSketch();
-        } else {
-          tooFar[userList[i]] = (com.z>1000);
+      if (!switchOverride) {
+        //let's get the center of mass (com)
+        if (context.getCoM(userList[i], com)) {
+          //context.convertRealWorldToProjective(com, com2d);
+          if (com.z<1000 && com.z>1 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
+             tooFar[userList[i]] = !tooFar[userList[i]];
+             switchSketch();
+          } else {
+            tooFar[userList[i]] = (com.z>1000);
+          }
         }
       }
-      
       //@PP comment faire avec plusieurs utilisateurs ???
       sendOSCSkeleton(userList[i]);
     }
@@ -407,6 +409,30 @@ void keyPressed()
     case ' ':
         context.setMirror(!context.mirror());
         println("Switch Mirroring");
+        break;
+    case '1':
+        currentSketch = 0;
+        println("Sketch 1");
+        switchOverride = true;
+        break;
+    case '2':
+        currentSketch = 1;
+        println("Sketch 2");
+        switchOverride = true;
+        break;
+    case '3':
+        currentSketch = 2;
+        println("Sketch 3");
+        switchOverride = true;
+        break;
+    case '4':
+        currentSketch = 3;
+        println("Sketch 4");
+        switchOverride = true;
+        break;
+    case ESC:
+        switchOverride = !switchOverride;
+        key = 0;
         break;
     }
 }  
