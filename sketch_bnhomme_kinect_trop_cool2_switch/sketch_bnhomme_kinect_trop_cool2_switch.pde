@@ -188,7 +188,7 @@ private void sendOSCSkeleton(int inUserID)
     sendOSCSkeletonPosition("/right_knee", inUserID, SimpleOpenNI.SKEL_RIGHT_KNEE);
     sendOSCSkeletonPosition("/right_foot", inUserID, SimpleOpenNI.SKEL_RIGHT_FOOT);
     
-    sendOSCSketchId(currentSketch)
+    sendOSCSketchId(currentSketch);
 }
 
 // --------------------------------------------------------------------------------
