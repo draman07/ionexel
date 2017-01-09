@@ -137,6 +137,18 @@ private void setupOSC()
     oscDestinationAddress = new NetAddress("127.0.0.1", oscTransmitPort);
 }
 
+private void sendOSCSketchId(int index)
+{
+    // create the OSC message with target address
+    OscMessage msg = new OscMessage("/sketch_id");
+
+    // add the sketch id to the message
+    msg.add(index);
+    
+    // send the message
+    oscP5.send(msg, oscDestinationAddress);
+}
+
 private void sendOSCSkeletonPosition(String inAddress, int inUserID, int inJointType)
 {
     // create the OSC message with target address
@@ -382,6 +394,7 @@ void draw()
 void switchSketch() {
   nbSwitches++;
   currentSketch = nbSwitches % nbSketches;
+  sendOSCSketchId(currentSketch);
 }
 
 void setupFlowfield() {
