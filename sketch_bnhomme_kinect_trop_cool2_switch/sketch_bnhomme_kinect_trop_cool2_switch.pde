@@ -475,29 +475,29 @@ void keyPressed()
         context.setMirror(!context.mirror());
         println("Switch Mirroring");
         break;
-    case '1':
+    case '0':
         currentSketch = 0;
+        println("Sketch 0");
+        switchOverride = true;
+        break;
+    case '1':
+        currentSketch = 1;
         println("Sketch 1");
         switchOverride = true;
         break;
     case '2':
-        currentSketch = 1;
+        currentSketch = 2;
         println("Sketch 2");
         switchOverride = true;
         break;
     case '3':
-        currentSketch = 2;
+        currentSketch = 3;
         println("Sketch 3");
         switchOverride = true;
         break;
     case '4':
-        currentSketch = 3;
-        println("Sketch 4");
-        switchOverride = true;
-        break;
-    case '5':
         currentSketch = 4;
-        println("Sketch 5");
+        println("Sketch 4");
         switchOverride = true;
         break;
     case ESC:
