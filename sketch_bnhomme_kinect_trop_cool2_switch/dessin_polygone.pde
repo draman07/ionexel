@@ -13,11 +13,22 @@ class DessinPolygone {
     canvas.rect(0, 0, width, height);
     
     // put the image into a PImage
-    resultImage = context.userImage();
+    //resultImage = context.depthImage();
+    userMap = context.userMap();
+    //resultImage = loadPixels();
+    for (int pic = 0; pic<userMap.length; pic ++) {
+     if (userMap[pic] > 0) {
+      resultImage.pixels[pic] = color(255);
+     } else {
+      resultImage.pixels[pic] = color(0); 
+     }
+    }
+    resultImage.updatePixels();
+    
     // copy the image into the smaller blob image
     blobs.copy(resultImage, 0, 0, resultImage.width, resultImage.height, 0, 0, blobs.width, blobs.height);
     // blur the blob image
-    blobs.filter(THRESHOLD, 0.7);
+    //blobs.filter(THRESHOLD, 0.7);
     blobs.filter(BLUR);
     // detect the blobs
     theBlobDetection.computeBlobs(blobs.pixels);

@@ -40,7 +40,7 @@ int kCameraImage_IR = 2;                 // infra red camera image
 int kCameraImage_Depth = 3;              // depth without colored bodies of tracked bodies
 int kCameraImage_User = 4;               // depth image with colored bodies of tracked bodies
 
-int kCameraImageMode = kCameraImage_User; // << Set thie value to one of the kCamerImage constants above
+int kCameraImageMode = kCameraImage_Depth; // << Set the value to one of the kCamerImage constants above
 
 // --------------------------------------------------------------------------------
 //  SKELETON DRAWING
@@ -328,7 +328,7 @@ void setup()
     setupFlowfield();
     
     //setup buffer image
-    resultImage = new PImage(640, 480, RGB);
+    resultImage = createImage(640, 480, RGB);
 }
 
 void draw()
@@ -344,6 +344,8 @@ void draw()
         //let's get the center of mass (com)
         if (context.getCoM(userList[i], com)) {
           //context.convertRealWorldToProjective(com, com2d);
+          //resultImage = context.depthImage();
+          //println("center of mass: " + com.z + " intensity: " + brightness(resultImage.pixels[int(com2d.x + com2d.y*640)]));
           if (com.z<1000 && com.z>1 && tooFar[userList[i]]) { //le centre masse s'est rapproché alors qu'on était loin : on switche
              tooFar[userList[i]] = !tooFar[userList[i]];
              switchSketch();
