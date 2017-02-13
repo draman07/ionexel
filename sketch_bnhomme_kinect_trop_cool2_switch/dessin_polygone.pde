@@ -41,10 +41,17 @@ class DessinPolygone {
     }
     
     canvas.stroke(255);
+    h.setRoughness(3);
+      h.setFillWeight(2);
+      
+      
     if (poly.npoints>1) {
-      for (int i=1; i<poly.npoints; i++) {
-        canvas.line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
+      h.beginShape();
+      for (int i=0; i<poly.npoints; i++) {
+        //canvas.line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
+        h.vertex(poly.xpoints[i], poly.ypoints[i]);
       }
+      h.endShape();
     }
      
      
