@@ -14,6 +14,8 @@ class BonhommeAlumette {
   
   private void drawSkeletonAlumette(int userId)
   {
+    boolean noNeck = (userId%2 == nbSwitches%2);
+    
     canvas.stroke(255, 255, 255, 255);
     canvas.strokeWeight(3);
     
@@ -32,8 +34,12 @@ class BonhommeAlumette {
     canvas.endShape();
     
     canvas.beginShape();
-    drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
-    drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
+    if (!noNeck) {
+      drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
+      drawJoint(userId, SimpleOpenNI.SKEL_HEAD);
+    } else {
+      drawJoint(userId, SimpleOpenNI.SKEL_NECK);
+    }
     drawJoint(userId, SimpleOpenNI.SKEL_NECK);
     drawJoint(userId, SimpleOpenNI.SKEL_TORSO);
     drawBetweenJoints(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_RIGHT_HIP);
@@ -53,7 +59,11 @@ class BonhommeAlumette {
     drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_KNEE);
     drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_FOOT);
     drawJoint(userId, SimpleOpenNI.SKEL_RIGHT_FOOT);
-    canvas.endShape();    
+    canvas.endShape();
+    
+    canvas.beginShape();
+    drawHead(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK, noNeck);
+    canvas.endShape();   
   }
   
   private void drawJoint(int userId, int jointType)
@@ -91,6 +101,50 @@ class BonhommeAlumette {
       between.div(2);
       
       canvas.curveVertex(between.x, between.y);
+  }
+  
+  private void drawHead(int userId, int head, int neck, boolean noNeck)
+  {
+      float  confidence;
+  
+      // draw the joint position
+      PVector a_3d = new PVector();
+      confidence = context.getJointPositionSkeleton(userId, head, a_3d);
+      PVector b_3d = new PVector();
+      confidence = context.getJointPositionSkeleton(userId, neck, b_3d);
+      
+      PVector a_2d = new PVector();
+      context.convertRealWorldToProjective(a_3d, a_2d);
+      PVector b_2d = new PVector();
+      context.convertRealWorldToProjective(b_3d, b_2d);
+      println(a_2d.x);
+      PVector between = new PVector();
+      between = PVector.sub(a_2d,b_2d);
+      //between.sub(b_2d);
+      println(a_2d.x);
+      PVector cg = new PVector();
+      cg = PVector.add(a_2d, between);
+      //cg.add(between);
+      PVector vcg = new PVector();
+      vcg.set(between);
+      vcg.rotate(HALF_PI);
+      println(a_2d.x);
+      cg.add(PVector.div(vcg, 2));
+      
+      PVector cd = new PVector();
+      cd = PVector.sub(cg, vcg);
+      //cd.sub(vcg);
+      //canvas.stroke(255, 0, 0, 255);
+      if (!noNeck) {
+        pushMatrix();
+        rotate(PI);
+      }
+      canvas.triangle(a_2d.x, a_2d.y, cd.x, cd.y, cg.x, cg.y);
+      if (!noNeck) {
+        popMatrix();
+      }
+      println(a_2d.x);
+      
   }
   
 }

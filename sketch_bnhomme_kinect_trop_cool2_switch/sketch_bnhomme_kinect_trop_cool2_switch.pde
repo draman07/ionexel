@@ -271,7 +271,7 @@ int currentSketch = 0;
 int nbSketches = 5;
 int nbSwitches = 0;
 boolean[] tooFar = new boolean[16]; //one for each user
-boolean switchOverride = false;
+boolean switchOverride = true;
 boolean dflux = false;
 PImage resultImage;
 
@@ -367,14 +367,18 @@ void draw()
     
     switch(currentSketch) {
       case 0:
-        bdessin.dessine(userList);
+        background(0);
         break;
       case 1:
-        balum.dessine(userList);
+        bdessin.dessine(userList);
         break;
       case 2:
-        rbackground.dessine();
+      
+        balum.dessine(userList);
         break;
+      /* case 3:
+        rbackground.dessine();
+        break; /* */
       case 3:
         dflux = false;
         dpolygone.dessine();
@@ -397,7 +401,7 @@ void draw()
 
 void switchSketch() {
   nbSwitches++;
-  currentSketch = nbSwitches % nbSketches;
+  //  currentSketch = nbSwitches % nbSketches;
 }
 
 void setupFlowfield() {
@@ -490,7 +494,8 @@ void keyPressed()
     case '2':
         currentSketch = 2;
         println("Sketch 2");
-        switchOverride = true;
+        // we need to switch between representations
+        switchOverride = false;
         break;
     case '3':
         currentSketch = 3;
