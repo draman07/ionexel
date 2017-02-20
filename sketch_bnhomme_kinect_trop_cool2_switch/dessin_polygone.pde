@@ -40,9 +40,15 @@ class DessinPolygone {
       drawFlowfield();
     }
     
-    canvas.stroke(255);
     h.setRoughness(3);
       h.setFillWeight(2);
+      h.setFillGap(5);
+    h.setOverrideFillColour(true);
+  h.setOverrideStrokeColour(true);
+  h.setBackgroundColour(color(0));
+  h.setFillColour(color(255));
+  h.setStrokeColour(color(255));
+  h.setSeed(1234);
       
       
     if (poly.npoints>1) {
