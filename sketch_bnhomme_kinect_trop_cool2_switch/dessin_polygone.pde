@@ -38,28 +38,33 @@ class DessinPolygone {
     poly.createPolygon();
     if (dflux) {
       drawFlowfield();
-    }
+      stroke(255);
+      if (poly.npoints>1) {
+        for (int i=1; i<poly.npoints; i++) {
+          line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
+        }
+      }
+    } else {
     
-    h.setRoughness(3);
+      h.setRoughness(3);
       h.setFillWeight(2);
       h.setFillGap(5);
-    h.setOverrideFillColour(true);
-  h.setOverrideStrokeColour(true);
-  h.setBackgroundColour(color(0));
-  h.setFillColour(color(255));
-  h.setStrokeColour(color(255));
-  h.setSeed(1234);
-      
-      
-    if (poly.npoints>1) {
-      h.beginShape();
-      for (int i=0; i<poly.npoints; i++) {
-        //canvas.line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
-        h.vertex(poly.xpoints[i], poly.ypoints[i]);
+      h.setOverrideFillColour(true);
+      h.setOverrideStrokeColour(true);
+      h.setBackgroundColour(color(0));
+      h.setFillColour(color(255));
+      h.setStrokeColour(color(255));
+      h.setSeed(1234);
+          
+      if (poly.npoints>1) {
+        h.beginShape();
+        for (int i=0; i<poly.npoints; i++) {
+          //canvas.line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
+          h.vertex(poly.xpoints[i], poly.ypoints[i]);
+        }
+        h.endShape();
       }
-      h.endShape();
-    }
-     
+    } 
      
     //canvas.image(resultImage, 0, 0);
   }

@@ -117,33 +117,31 @@ class BonhommeAlumette {
       context.convertRealWorldToProjective(a_3d, a_2d);
       PVector b_2d = new PVector();
       context.convertRealWorldToProjective(b_3d, b_2d);
-      println(a_2d.x);
+      
       PVector between = new PVector();
       between = PVector.sub(a_2d,b_2d);
       //between.sub(b_2d);
-      println(a_2d.x);
+      
       PVector cg = new PVector();
       cg = PVector.add(a_2d, between);
       //cg.add(between);
       PVector vcg = new PVector();
       vcg.set(between);
       vcg.rotate(HALF_PI);
-      println(a_2d.x);
+      
       cg.add(PVector.div(vcg, 2));
       
       PVector cd = new PVector();
       cd = PVector.sub(cg, vcg);
       //cd.sub(vcg);
       //canvas.stroke(255, 0, 0, 255);
-      if (!noNeck) {
-        pushMatrix();
-        rotate(PI);
+      if (noNeck) {
+        a_2d.add(between);
+        cd.sub(between);
+        cg.sub(between);
       }
       canvas.triangle(a_2d.x, a_2d.y, cd.x, cd.y, cg.x, cg.y);
-      if (!noNeck) {
-        popMatrix();
-      }
-      println(a_2d.x);
+      
       
   }
   

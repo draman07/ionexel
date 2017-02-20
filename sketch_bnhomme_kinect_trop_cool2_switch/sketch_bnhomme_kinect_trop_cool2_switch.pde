@@ -274,6 +274,9 @@ boolean[] tooFar = new boolean[16]; //one for each user
 boolean switchOverride = true;
 boolean dflux = false;
 PImage resultImage;
+boolean isTransitioning = false;
+int beginTransitioningFrameNumber = 0;
+int switchFlux = 0;
 
 BonhommeAlumette balum = new BonhommeAlumette();
 BonhommeDessin bdessin = new BonhommeDessin();
@@ -335,6 +338,7 @@ void draw()
 {
     // update the cam
     context.update();
+    int bufferCurrentSketch = currentSketch;
     
     //switch sketch if required
     int[] userList = context.getUsers();
@@ -357,15 +361,23 @@ void draw()
       //@PP comment faire avec plusieurs utilisateurs ???
       sendOSCSkeleton(userList[i]);
     }
-    
     canvas.beginDraw();
+
+    if (false) {
+      canvas.pushMatrix();
+      canvas.translate(0, height/2);
+      canvas.rotateX(HALF_PI * (frameCount - beginTransitioningFrameNumber ) / 100);
+      canvas.translate(0, -height/2);
+      bufferCurrentSketch--;
+    }
+    //canvas.beginDraw();
 
     // draw image
     //OpenNI_DrawCameraImage();
     PImage img = createImage(640, 480, RGB);
     canvas.image(img, 0, 0);
     
-    switch(currentSketch) {
+    switch(bufferCurrentSketch) {
       case 0:
         background(0);
         break;
@@ -380,16 +392,21 @@ void draw()
         rbackground.dessine();
         break; /* */
       case 3:
-        dflux = false;
+        dflux = (nbSwitches > switchFlux);
         dpolygone.dessine();
         break;
-      case 4:
+      /*case 4:
         dflux = true;
         dpolygone.dessine();
-        break;
+        break; /* */
     }
 
-    
+    if (false) {
+      canvas.popMatrix();
+      if (frameCount >= beginTransitioningFrameNumber + 100) {
+         isTransitioning = false; 
+      }
+    }
 
     canvas.endDraw();
 
@@ -481,32 +498,37 @@ void keyPressed()
         context.setMirror(!context.mirror());
         println("Switch Mirroring");
         break;
-    case '0':
+    case '0': //noir
         currentSketch = 0;
         println("Sketch 0");
         switchOverride = true;
         break;
-    case '1':
+    case '1': //forme informe
         currentSketch = 1;
         println("Sketch 1");
         switchOverride = true;
         break;
-    case '2':
+    case '2': //bonhomme allumette
+        isTransitioning = true;
+        beginTransitioningFrameNumber = frameCount;
         currentSketch = 2;
         println("Sketch 2");
         // we need to switch between representations
         switchOverride = false;
         break;
-    case '3':
+    case '3': //handy silhouette
+        isTransitioning = true;
+        beginTransitioningFrameNumber = frameCount;
+        switchFlux = nbSwitches;
         currentSketch = 3;
         println("Sketch 3");
-        switchOverride = true;
+        switchOverride = false;
         break;
-    case '4':
+    /*case '4': //flux silhouette
         currentSketch = 4;
         println("Sketch 4");
         switchOverride = true;
-        break;
+        break;/**/
     case ESC:
         switchOverride = !switchOverride;
         key = 0;
