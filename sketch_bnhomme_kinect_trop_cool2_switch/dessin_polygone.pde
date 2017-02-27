@@ -52,8 +52,8 @@ class DessinPolygone {
       h.setOverrideFillColour(true);
       h.setOverrideStrokeColour(true);
       h.setBackgroundColour(color(0));
-      h.setFillColour(color(255));
-      h.setStrokeColour(color(255));
+      h.setFillColour(color(100));
+      h.setStrokeColour(color(200));
       h.setSeed(1234);
           
       if (poly.npoints>1) {
