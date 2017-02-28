@@ -147,27 +147,14 @@ private void sendOSCSkeletonPosition(String inAddress, int inUserID, int inJoint
     oscP5.send(msg, oscDestinationAddress);
 }
 
-private void sendOSCSkeleton(int inUserID)
+private void sendOSC(Boolean hasChanged)
 {
-    sendOSCSkeletonPosition("/head", inUserID, SimpleOpenNI.SKEL_HEAD);
-    sendOSCSkeletonPosition("/neck", inUserID, SimpleOpenNI.SKEL_NECK);
-    sendOSCSkeletonPosition("/torso", inUserID, SimpleOpenNI.SKEL_TORSO);
-
-    sendOSCSkeletonPosition("/left_shoulder", inUserID, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-    sendOSCSkeletonPosition("/left_elbow", inUserID, SimpleOpenNI.SKEL_LEFT_ELBOW);
-    sendOSCSkeletonPosition("/left_hand", inUserID, SimpleOpenNI.SKEL_LEFT_HAND);
-
-    sendOSCSkeletonPosition("/right_shoulder", inUserID, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-    sendOSCSkeletonPosition("/right_elbow", inUserID, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-    sendOSCSkeletonPosition("/right_hand", inUserID, SimpleOpenNI.SKEL_RIGHT_HAND);
-
-    sendOSCSkeletonPosition("/left_hip", inUserID, SimpleOpenNI.SKEL_LEFT_HIP);
-    sendOSCSkeletonPosition("/left_knee", inUserID, SimpleOpenNI.SKEL_LEFT_KNEE);
-    sendOSCSkeletonPosition("/left_foot", inUserID, SimpleOpenNI.SKEL_LEFT_FOOT);
-
-    sendOSCSkeletonPosition("/right_hip", inUserID, SimpleOpenNI.SKEL_RIGHT_HIP);
-    sendOSCSkeletonPosition("/right_knee", inUserID, SimpleOpenNI.SKEL_RIGHT_KNEE);
-    sendOSCSkeletonPosition("/right_foot", inUserID, SimpleOpenNI.SKEL_RIGHT_FOOT);
+    // create the OSC message with target address
+    OscMessage msg = new OscMessage("/hasMoved");
+    Integer rep = (hasChanged)? 1 : 0;
+    msg.add(rep);
+    // send the message
+    oscP5.send(msg, oscDestinationAddress);
 }
 
 // --------------------------------------------------------------------------------
@@ -245,12 +232,6 @@ void setup()
     println("Setup Exit Handerl");
     prepareExitHandler();
     
-    // setup coordinates
-    for (int i=0; i<4; i++) {
-     for (int j=0; j<100; j++) {
-      coords[i][j] = -10000;
-     } 
-    }
 }
 
 void draw()
@@ -260,11 +241,8 @@ void draw()
 
     canvas.beginDraw();
 
-    // draw image
-    OpenNI_DrawCameraImage();
-
-    // draw the skeleton if it's available
-    if (kDrawSkeleton) {
+   // draw the skeleton if it's available
+   
 
         int[] userList = context.getUsers();
         for (int i=0; i<userList.length; i++)
@@ -276,41 +254,24 @@ void draw()
                 //drawSkeleton(userList[i]);
 
                 if (userList.length == 1) {
-                  storeCoordinates(userList[i]);
-                  checkPositionChange();
-                    sendOSCSkeleton(userList[i]);
+                  Boolean hasChanged = storeCoordinates(userList[i]);
+                  sendOSC(hasChanged);
+                  //sendOSCSkeleton(userList[i]);
                 }
             }      
 
-            // draw the center of mass
-            if (context.getCoM(userList[i], com))
-            {
-                context.convertRealWorldToProjective(com, com2d);
-
-                canvas.stroke(100, 255, 0);
-                canvas.strokeWeight(1);
-                canvas.beginShape(LINES);
-                canvas.vertex(com2d.x, com2d.y - 5);
-                canvas.vertex(com2d.x, com2d.y + 5);
-                canvas.vertex(com2d.x - 5, com2d.y);
-                canvas.vertex(com2d.x + 5, com2d.y);
-                canvas.endShape();
-
-                canvas.fill(0, 255, 100);
-                canvas.text(Integer.toString(userList[i]), com2d.x, com2d.y);
-            }
         }
-    }
+    
 
     canvas.endDraw();
 
     image(canvas, 0, 0);
 
     // send image to syphon
-    server.sendImage(canvas);
+    //server.sendImage(canvas);
 }
 
-void storeCoordinates(int userId) {
+Boolean storeCoordinates(int userId) {
   Boolean trigger = false;
   ArrayList<PVector> coords = new ArrayList<PVector>();
   coords.add(getCoords(userId, SimpleOpenNI.SKEL_HEAD));
@@ -373,7 +334,7 @@ void drawSkeleton(int userId)
     drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
     drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
 }
-void getCoords(int userId, int jointType) {
+PVector getCoords(int userId, int jointType) {
     float  confidence;
     PVector a_3d = new PVector();
     confidence = context.getJointPositionSkeleton(userId, jointType, a_3d);
