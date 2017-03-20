@@ -357,13 +357,13 @@ void drawLimb(int userId, int jointType1, int jointType2)
     canvas.line(a_2d.x, a_2d.y, b_2d.x, b_2d.y);
 }
 
-void setActiveUser(lateralPosition)
+void setActiveUser(String lateralPosition)
 {
   int[] userList = context.getUsers();
   PVector com = new PVector();
   int xmin = -10000;
   int xmax = 10000;
-  int user;
+  int user=-1;
   for (int i=0; i<userList.length; i++)
   {
     if(context.getCoM(userList[i],com))
@@ -371,17 +371,17 @@ void setActiveUser(lateralPosition)
       if(lateralPosition=="left") {
         if (com.x < xmax) {
            user = userList[i];
-           xmax = com.x;
+           xmax = int(com.x);
         }
       } else {
         if (com.x > xmin) {
            user = userList[i];
-           xmin = com.x;
+           xmin = int(com.x);
         }
       }
     }
   }
-  if (user!==activeUser) {
+  if (user != activeUser) {
     listeCoords.clear();
   }
   activeUser = user;
@@ -411,13 +411,13 @@ void onLostUser(SimpleOpenNI curContext, int userId)
     nbUsers--;
     if (nbUsers>0 && activeUser==userId) {
       for (int i=0; i<8; i++) {
-        if (usersBitSet && (1 << i)) {
+        if ((usersBitSet & (1 << i))==(1<<i)) {
           activeUser = i;
         } 
       }
     }
     if (nbUsers>0) {
-      println("Active user: " + activeUser; 
+      println("Active user: " + activeUser); 
     } else {
       println("No active user"); 
     }
@@ -434,11 +434,11 @@ void keyPressed()
     switch(keyCode)
     {
     case LEFT:
-        setActiveUser('left');
+        setActiveUser("left");
         println("Set left user as active");
         break;
     case RIGHT:
-        setActiveUser('right');
+        setActiveUser("right");
         println("Set right user as active");
         break;
     }
