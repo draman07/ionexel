@@ -288,6 +288,9 @@ void draw()
                   storeCoordinates(userList[i]);
                   checkPositionChange();
                     sendOSCSkeleton(userList[i]);
+<<<<<<< HEAD
+>>>>>>> parent of a311abf... page7 progress
+=======
 >>>>>>> parent of a311abf... page7 progress
                 }
             }      
