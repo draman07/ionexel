@@ -151,6 +151,20 @@ private void sendOSCSketchId(int index)
     oscP5.send(msg, oscDestinationAddress);
 }
 
+private void sendOSC(boolean hasChanged)
+{
+    // create the OSC message with target address
+    OscMessage msg = new OscMessage("/hasChanged");
+
+    int message = (hasChanged)? 1 : 0;
+    // add the flag to the message
+    msg.add(message);
+    
+    // send the message
+    oscP5.send(msg, oscDestinationAddress);
+}
+
+
 private void sendOSCSkeletonPosition(String inAddress, int inUserID, int inJointType)
 {
     // create the OSC message with target address
@@ -285,6 +299,13 @@ BonhommeDessin bdessin = new BonhommeDessin();
 RemoveBackground rbackground = new RemoveBackground();
 DessinPolygone dpolygone = new DessinPolygone();
 
+//Keep coordinates
+ArrayList<ArrayList<PVector>> listeCoords = new ArrayList<ArrayList<PVector>>();
+int usersBitSet = 0;
+int activeUser = 0;
+int nbUsers = 0;
+
+
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
 // --------------------------------------------------------------------------------
@@ -361,7 +382,12 @@ void draw()
         }
       }
       //@PP comment faire avec plusieurs utilisateurs ???
-      sendOSCSkeleton(userList[i]);
+      if (userList[i]==activeUser  || userList.length==1) {
+                  Boolean hasChanged = storeCoordinates(userList[i]);
+                  sendOSCSkeleton(userList[i]);
+                  sendOSC(hasChanged);
+      }
+      
     }
     canvas.beginDraw();
 
@@ -468,22 +494,111 @@ void setRandomColors(int nthFrame) {
   }
 }
 
+Boolean storeCoordinates(int userId) {
+  Boolean trigger = false;
+  ArrayList<PVector> coords = new ArrayList<PVector>();
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_HEAD));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_NECK));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_ELBOW));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_HAND));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_HAND));
+  coords.add(getCoords(userId, SimpleOpenNI.SKEL_TORSO));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_HIP));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_KNEE));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_LEFT_FOOT));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_HIP));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_KNEE));
+  //coords.add(getCoords(userId, SimpleOpenNI.SKEL_RIGHT_FOOT));
+  listeCoords.add(coords);
+  if (listeCoords.size()>3) {
+    // let's compare movements
+    ArrayList<PVector> coords_0 = listeCoords.get(0);
+    for (int i=0; i<coords_0.size(); i++) {
+      float d = coords_0.get(i).dist(coords.get(i));
+      if (d>200) {
+        trigger = true;
+        i = 50;
+      }  
+    }
+    //remove first element of arraylist
+    listeCoords.remove(0);
+  }
+  return trigger;
+}
 
+PVector getCoords(int userId, int jointType) {
+    float  confidence;
+    PVector a_3d = new PVector();
+    confidence = context.getJointPositionSkeleton(userId, jointType, a_3d);
+    return a_3d;
+}
 
+void setActiveUser(String lateralPosition)
+{
+  int[] userList = context.getUsers();
+  PVector com = new PVector();
+  int xmin = -10000;
+  int xmax = 10000;
+  int user=-1;
+  for (int i=0; i<userList.length; i++)
+  {
+    if(context.getCoM(userList[i],com))
+    {
+      if(lateralPosition=="left") {
+        if (com.x < xmax) {
+           user = userList[i];
+           xmax = int(com.x);
+        }
+      } else {
+        if (com.x > xmin) {
+           user = userList[i];
+           xmin = int(com.x);
+        }
+      }
+    }
+  }
+  if (user != activeUser) {
+    listeCoords.clear();
+  }
+  activeUser = user;
+  println("Active user on "+lateralPosition+": "+activeUser);  
+}
 // -----------------------------------------------------------------
 // SimpleOpenNI events
-
 void onNewUser(SimpleOpenNI curContext, int userId)
 {
     println("onNewUser - userId: " + userId);
     println("\tstart tracking skeleton");
 
     curContext.startTrackingSkeleton(userId);
+    usersBitSet += (1 << userId);
+    nbUsers ++;
+    if (nbUsers==1) {
+      activeUser = userId;
+    }
+    println("Active user: "+activeUser);
 }
 
 void onLostUser(SimpleOpenNI curContext, int userId)
 {
     println("onLostUser - userId: " + userId);
+    usersBitSet -= (1<<userId);
+    nbUsers--;
+    if (nbUsers>0 && activeUser==userId) {
+      for (int i=0; i<8; i++) {
+        if ((usersBitSet & (1 << i))==(1<<i)) {
+          activeUser = i;
+        } 
+      }
+    }
+    if (nbUsers>0) {
+      println("Active user: " + activeUser); 
+    } else {
+      println("No active user"); 
+    }
 }
 
 void onVisibleUser(SimpleOpenNI curContext, int userId)
@@ -534,6 +649,14 @@ void keyPressed()
     case ESC:
         switchOverride = !switchOverride;
         key = 0;
+        break;
+    case LEFT:
+        setActiveUser("left");
+        println("Set left user as active");
+        break;
+    case RIGHT:
+        setActiveUser("right");
+        println("Set right user as active");
         break;
     }
 }  
