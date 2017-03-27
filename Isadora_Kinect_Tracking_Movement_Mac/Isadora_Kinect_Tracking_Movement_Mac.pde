@@ -130,6 +130,19 @@ private void setupOSC()
     oscDestinationAddress = new NetAddress("127.0.0.1", oscTransmitPort);
 }
 
+private void sendOSC(boolean hasChanged)
+{
+    // create the OSC message with target address
+    OscMessage msg = new OscMessage("/hasChanged");
+
+    int message = (hasChanged)? 1 : 0;
+    // add the flag to the message
+    msg.add(message);
+    
+    // send the message
+    oscP5.send(msg, oscDestinationAddress);
+}
+
 private void sendOSCSkeletonPosition(String inAddress, int inUserID, int inJointType)
 {
     // create the OSC message with target address
@@ -248,12 +261,12 @@ void setup()
     println("Setup Exit Handerl");
     prepareExitHandler();
     
-    // setup coordinates
+    /* setup coordinates
     for (int i=0; i<4; i++) {
      for (int j=0; j<100; j++) {
       coords[i][j] = -10000;
      } 
-    }
+    }*/
 }
 
 void draw()
@@ -274,24 +287,19 @@ void draw()
         {
             if (context.isTrackingSkeleton(userList[i]))
             {
-<<<<<<< HEAD
+
                 if (userList[i]==activeUser) {
                   Boolean hasChanged = storeCoordinates(userList[i]);
                   sendOSC(hasChanged);
                   //sendOSCSkeleton(userList[i]);
-=======
+                }
                 //canvas.stroke(userClr[ (userList[i] - 1) % userClr.length ] );
 
                 //drawSkeleton(userList[i]);
 
                 if (userList.length == 1) {
-                  storeCoordinates(userList[i]);
-                  checkPositionChange();
-                    sendOSCSkeleton(userList[i]);
-<<<<<<< HEAD
->>>>>>> parent of a311abf... page7 progress
-=======
->>>>>>> parent of a311abf... page7 progress
+                  Boolean hasChanged = storeCoordinates(userList[i]);
+                  sendOSC(hasChanged);
                 }
             }      
 
@@ -313,6 +321,7 @@ void draw()
                 canvas.text(Integer.toString(userList[i]), com2d.x, com2d.y);
             }
         }
+        
     }
 
     canvas.endDraw();
@@ -321,9 +330,39 @@ void draw()
 
     // send image to syphon
     server.sendImage(canvas);
-}
+};
 
-void storeCoordinates(int userId) {
+
+
+
+// draw the skeleton with the selected joints
+void drawSkeleton(int userId)
+{
+    canvas.stroke(255, 255, 255, 255);
+    canvas.strokeWeight(3);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
+    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
+    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
+    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
+    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
+    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
+    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
+    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
+
+    drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
+    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
+    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
+}
+Boolean storeCoordinates(int userId) {
   Boolean trigger = false;
   ArrayList<PVector> coords = new ArrayList<PVector>();
   coords.add(getCoords(userId, SimpleOpenNI.SKEL_HEAD));
@@ -358,35 +397,7 @@ void storeCoordinates(int userId) {
   return trigger;
 }
 
-
-// draw the skeleton with the selected joints
-void drawSkeleton(int userId)
-{
-    canvas.stroke(255, 255, 255, 255);
-    canvas.strokeWeight(3);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
-
-    drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
-    drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
-}
-void getCoords(int userId, int jointType) {
+PVector getCoords(int userId, int jointType) {
     float  confidence;
     PVector a_3d = new PVector();
     confidence = context.getJointPositionSkeleton(userId, jointType, a_3d);
