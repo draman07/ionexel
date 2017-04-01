@@ -298,6 +298,7 @@ BonhommeAlumette balum = new BonhommeAlumette();
 BonhommeDessin bdessin = new BonhommeDessin();
 RemoveBackground rbackground = new RemoveBackground();
 DessinPolygone dpolygone = new DessinPolygone();
+DepthMap3D depthmap = new DepthMap3D();
 
 //Keep coordinates
 ArrayList<ArrayList<PVector>> listeCoords = new ArrayList<ArrayList<PVector>>();
@@ -305,6 +306,11 @@ int usersBitSet = 0;
 int activeUser = 0;
 int nbUsers = 0;
 
+//3dmap
+float        zoomF =0.3f;
+float        rotX = radians(180);  // by default rotate the hole scene 180deg around the x-axis, 
+                                   // the data from openni comes upside down
+float        rotY = radians(0);
 
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
@@ -427,6 +433,9 @@ void draw()
         dflux = true;
         dpolygone.dessine();
         break; /* */
+      case 4:
+        depthmap.dessine();
+        break;
     }
 
     if (false) {
@@ -646,18 +655,35 @@ void keyPressed()
         println("Sketch 4");
         switchOverride = true;
         break;/**/
+    case '4': //3DMap
+        currentSketch = 4;
+        println("Sketch 4");
+        switchOverride = true;
+        break;
     case ESC:
         switchOverride = !switchOverride;
         key = 0;
         break;
-    case LEFT:
-        setActiveUser("left");
-        println("Set left user as active");
+    case 'd':
+      rotY += 0.1f;
+      break;
+    case 'g':
+        rotY -= 0.1f;
         break;
-    case RIGHT:
-        setActiveUser("right");
-        println("Set right user as active");
-        break;
+    case 'r':
+      rotX += 0.1f;
+      break;
+    case 'v':
+      rotX -= 0.1f;
+      break;
+    case 'e':
+      zoomF += 0.02f;
+      break;
+    case 'c':
+      zoomF -= 0.02f;
+      if(zoomF < 0.01)
+        zoomF = 0.01;
+      break;
     }
 }  
 
