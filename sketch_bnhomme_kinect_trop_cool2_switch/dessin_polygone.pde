@@ -8,7 +8,7 @@ class DessinPolygone {
   
   void dessine() {
     // fading background : fill with 65% opacity
-    //noStroke();
+    noStroke();
     canvas.fill(0, 65);
     canvas.rect(0, 0, width, height);
     
@@ -38,10 +38,11 @@ class DessinPolygone {
     poly.createPolygon();
     if (dflux) {
       drawFlowfield();
-      stroke(255);
+      canvas.stroke(222);
+      canvas.strokeWeight(1);
       if (poly.npoints>1) {
         for (int i=1; i<poly.npoints; i++) {
-          line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
+          canvas.line(poly.xpoints[i-1], poly.ypoints[i-1], poly.xpoints[i], poly.ypoints[i]);
         }
       }
     } else {
