@@ -305,11 +305,11 @@ int activeUser = 0;
 int nbUsers = 0;
 
 //3dmap
-float        zoomF =0.3f;
+float        zoomF =0.184f;
 float        rotX = radians(180);  // by default rotate the hole scene 180deg around the x-axis, 
                                    // the data from openni comes upside down
-float        rotY = radians(0);
-float        transX = 0;
+float        rotY = -1f;
+float        transX = 326;
 float        transY = 0;
 
 // --------------------------------------------------------------------------------
