@@ -1,5 +1,4 @@
 
-
 /* --------------------------------------------------------------------------
  * SimpleOpenNI User Test
  * --------------------------------------------------------------------------
@@ -151,14 +150,13 @@ private void sendOSCSketchId(int index)
     oscP5.send(msg, oscDestinationAddress);
 }
 
-private void sendOSC(boolean hasChanged)
+private void sendOSC(float hasChanged)
 {
     // create the OSC message with target address
     OscMessage msg = new OscMessage("/hasChanged");
 
-    int message = (hasChanged)? 1 : 0;
     // add the flag to the message
-    msg.add(message);
+    msg.add(hasChanged);
     
     // send the message
     oscP5.send(msg, oscDestinationAddress);
@@ -311,6 +309,8 @@ float        zoomF =0.3f;
 float        rotX = radians(180);  // by default rotate the hole scene 180deg around the x-axis, 
                                    // the data from openni comes upside down
 float        rotY = radians(0);
+float        transX = 0;
+float        transY = 0;
 
 // --------------------------------------------------------------------------------
 //  MAIN PROGRAM
@@ -389,7 +389,7 @@ void draw()
       }
       //@PP comment faire avec plusieurs utilisateurs ???
       if (userList[i]==activeUser  || userList.length==1) {
-                  Boolean hasChanged = storeCoordinates(userList[i]);
+                  float hasChanged = storeCoordinates(userList[i]);
                   sendOSCSkeleton(userList[i]);
                   sendOSC(hasChanged);
       }
@@ -503,8 +503,8 @@ void setRandomColors(int nthFrame) {
   }
 }
 
-Boolean storeCoordinates(int userId) {
-  Boolean trigger = false;
+float storeCoordinates(int userId) {
+  float dMax = 0;
   ArrayList<PVector> coords = new ArrayList<PVector>();
   coords.add(getCoords(userId, SimpleOpenNI.SKEL_HEAD));
   coords.add(getCoords(userId, SimpleOpenNI.SKEL_NECK));
@@ -527,15 +527,14 @@ Boolean storeCoordinates(int userId) {
     ArrayList<PVector> coords_0 = listeCoords.get(0);
     for (int i=0; i<coords_0.size(); i++) {
       float d = coords_0.get(i).dist(coords.get(i));
-      if (d>200) {
-        trigger = true;
-        i = 50;
+      if (d>dMax) {
+        dMax = d;
       }  
     }
     //remove first element of arraylist
     listeCoords.remove(0);
   }
-  return trigger;
+  return dMax;
 }
 
 PVector getCoords(int userId, int jointType) {
@@ -666,15 +665,19 @@ void keyPressed()
         break;
     case 'd':
       rotY += 0.1f;
+      transX -= 0.05*width;
       break;
     case 'g':
         rotY -= 0.1f;
+        transX += 0.05*width;
         break;
     case 'r':
       rotX += 0.1f;
+      transY += 0.1*height;
       break;
     case 'v':
       rotX -= 0.1f;
+      transY -= 0.1*height;
       break;
     case 'e':
       zoomF += 0.02f;

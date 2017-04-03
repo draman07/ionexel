@@ -10,17 +10,22 @@ class DepthMap3D {
     canvas.translate(width/2, height/2, 0);
     canvas.rotateX(rotX);
     canvas.rotateY(rotY);
+    canvas.translate(transX, transY, 0);
     canvas.scale(zoomF);
   
     int[]   depthMap = context.depthMap();
-    int     steps   = 4;  // to speed up the drawing, draw every third point
+    int     steps   = 6;  // to speed up the drawing, draw every third point
     int     index;
     PVector realWorldPoint;
    
     canvas.translate(0,0,-1000);  // set the rotation center of the scene 1000 infront of the camera
   
     canvas.stroke(255);
-  
+  canvas.strokeWeight(1);
+  smooth();
+  perspective(radians(45),
+              float(width)/float(height),
+              10,150000);
     PVector[] realWorldMap = context.depthMapRealWorld();
     
     // draw pointcloud
